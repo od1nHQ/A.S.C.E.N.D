@@ -1,0 +1,47 @@
+# Build folders
+build/
+build-*/
+cmake-build-*/
+out/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# Qt Creator user files
+*.user
+*.user.*
+CMakeLists.txt.user
+CMakeLists.txt.user.*
+
+# Qt generated/cache
+.qmlcache/
+.qmake.stash
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# Visual Studio / Windows
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Binaries
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.obj
+*.o
+*.a
+*.lib
+
+# OS junk
+Thumbs.db
+Desktop.ini
+.DS_Store
