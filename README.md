@@ -26,7 +26,7 @@ The program helps you work with anvil target positions, required final moves, ma
 The easiest way to use Ascent is to download the portable release.
 
 1. Open the GitHub repository page.
-2. On the right side of the page, find **Releases**.
+2. Find **Releases** on the right side of the page.
 3. Open the latest release.
 4. Download the portable archive:
 
@@ -62,6 +62,24 @@ More info → Run anyway
 ```
 
 This warning appears because the executable does not have a paid code-signing certificate.
+
+## Screenshots
+
+### Main window
+
+![Main window](docs/images/main-window.png)
+
+### Template panel
+
+![Template panel](docs/images/template-panel.png)
+
+### Save template panel
+
+![Save template panel](docs/images/save-template.png)
+
+### Sequence result
+
+![Sequence result](docs/images/sequence-result.png)
 
 ## Basic usage
 
@@ -143,34 +161,6 @@ C:\Users\<YourUserName>\AppData\Roaming\A.S.C.E.N.D\templates.json
 
 This file contains user-created templates. It is separate from the program files.
 
-## Screenshots
-
-Recommended screenshots for this repository:
-
-```text
-docs/images/main-window.png
-docs/images/template-panel.png
-docs/images/save-template.png
-docs/images/sequence-result.png
-```
-
-Minimum required screenshot:
-
-```text
-docs/images/main-window.png
-```
-
-Suggested screenshot content:
-
-| File | What to show |
-|---|---|
-| `docs/images/main-window.png` | Main program window with the anvil interface |
-| `docs/images/template-panel.png` | Template list with search, SAVE, and DEL buttons |
-| `docs/images/save-template.png` | Save template panel with item icon selection |
-| `docs/images/sequence-result.png` | Calculated sequence dropdown |
-
-If you only want one image for now, add only `main-window.png` and leave the other screenshots for later.
-
 ## Build from source
 
 ### Requirements
@@ -197,34 +187,9 @@ If you only want one image for now, add only `main-window.png` and leave the oth
 
 4. Choose a build configuration:
    - `Debug` for development;
-   - `Release` for portable builds.
+   - `Release` for release builds.
 
 5. Build the project.
-
-### Create a portable Windows build
-
-After building the Release configuration, copy the executable into a deploy folder and run `windeployqt`.
-
-Example:
-
-```cmd
-windeployqt --release --qmldir D:\QTp\ASCEND_GUI "D:\QTp\ASCEND_DEPLOY\A.S.C.E.N.D_v0.2.0\A.S.C.E.N.D.exe"
-```
-
-Then zip the whole deploy folder.
-
-The ZIP must include the executable and all deployed Qt files, for example:
-
-```text
-A.S.C.E.N.D.exe
-Qt6Core.dll
-Qt6Gui.dll
-Qt6Qml.dll
-Qt6Quick.dll
-platforms/
-qml/
-imageformats/
-```
 
 ## Repository structure
 
@@ -236,6 +201,8 @@ ASCEND_GUI/
 │   │   └── items/
 │   └── ui/
 ├── core/
+├── docs/
+│   └── images/
 ├── Main.qml
 ├── main.cpp
 ├── SolverBridge.h
