@@ -2,13 +2,16 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QCoreApplication>
+#include <QIcon>
 
 #include "SolverBridge.h"
-
-#include <QIcon>
+#include "TemplateBridge.h"
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication::setOrganizationName("Od1nHQ");
+    QCoreApplication::setApplicationName("ASCEND_GUI");
+
     QGuiApplication app(argc, argv);
 
     app.setWindowIcon(QIcon(":/qt/qml/ASCEND_GUI/assets/ui/app_icon.ico"));
@@ -16,7 +19,10 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     SolverBridge solverBridge;
+    TemplateBridge templateBridge;
+
     engine.rootContext()->setContextProperty("solverBridge", &solverBridge);
+    engine.rootContext()->setContextProperty("templateBridge", &templateBridge);
 
     QObject::connect(
         &engine,
@@ -32,3 +38,4 @@ int main(int argc, char *argv[])
 
     return app.exec();
 }
+

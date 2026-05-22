@@ -17,6 +17,27 @@ Window {
     property int planButtonY: 40
     property int planButtonSize: 18
 
+    // ===================== SELECTED TEMPLATE STATE =====================
+    // Іконка вибраного шаблона на лівій planButton.
+    //
+    // Якщо шаблон ще не вибраний — показується стандартна plan_icon.png.
+    //
+    // selectedTemplateIconSize більше -> іконка предмета більша
+    // selectedTemplateIconSize менше  -> іконка предмета менша
+    //
+    // selectedTemplateIconOffsetX більше -> іконка правіше
+    // selectedTemplateIconOffsetX менше  -> іконка лівіше
+    // selectedTemplateIconOffsetY більше -> іконка нижче
+    // selectedTemplateIconOffsetY менше  -> іконка вище
+    property string selectedTemplateIcon: ""
+    property string selectedTemplateName: ""
+    property string selectedTemplateMaterial: ""
+    property string selectedTemplateId: ""
+
+    property int selectedTemplateIconSize: 14
+    property int selectedTemplateIconOffsetX: 0
+    property int selectedTemplateIconOffsetY: -1
+
     // ===================== SEQUENCE BUTTON POSITION =====================
     // Права кнопка для розрахунку/показу послідовності.
     //
@@ -64,6 +85,119 @@ Window {
     property int sequenceIconSize: 10
     property int sequenceCellSize: 13
     property int sequenceCellSpacing: 2
+
+    // ===================== TEMPLATE PANEL SETTINGS =====================
+    // Панель шаблонів відкривається від лівої planButton.
+    //
+    // templatePanelX більше -> панель правіше
+    // templatePanelX менше  -> панель лівіше
+    // templatePanelY більше -> панель нижче
+    // templatePanelY менше  -> панель вище
+    //
+    // templatePanelWidth / Height -> розмір панелі.
+    // templateRowHeight -> висота одного рядка шаблона.
+    property bool templatePanelVisible: false
+    property var templateList: []
+    property string templateSearchText: ""
+
+    property int templatePanelX: 4
+    property int templatePanelY: 60
+    property int templatePanelWidth: 168
+    property int templatePanelHeight: 56
+
+    property int templateSearchX: 4
+    property int templateSearchY: 3
+    property int templateSearchWidth: 136
+    property int templateSearchHeight: 9
+
+    property int templateListX: 4
+    property int templateListY: 15
+    property int templateListWidth: 160
+    property int templateListHeight: 37
+
+    property int templateRowHeight: 13
+    property int templateIconSize: 10
+    property int templateTextSize: 4
+    property int templateSmallTextSize: 3
+
+    // Маленька кнопка SAVE у template panel.
+    // Вона відкриває меню збереження поточного target + finalMoves.
+    property int templateSaveButtonX: 142
+    property int templateSaveButtonY: 3
+    property int templateSaveButtonWidth: 14
+    property int templateSaveButtonHeight: 9
+    property int templateSaveButtonTextSize: 3
+
+    // Хрестик закриття template panel біля SAVE.
+    // templateCloseButtonHeight краще тримати рівним templateSaveButtonHeight,
+    // щоб SAVE і X мали однакову висоту.
+    property int templateCloseButtonRightMargin: 10
+    property int templateCloseButtonY: templateSaveButtonY
+    property int templateCloseButtonWidth: 7
+    property int templateCloseButtonHeight: templateSaveButtonHeight
+    property int templateCloseButtonTextSize: 4
+
+    // Маленька кнопка DEL у рядку шаблона.
+    // Видаляє шаблон із templates.json.
+    property int templateDeleteButtonWidth: 12
+    property int templateDeleteButtonHeight: 9
+    property int templateDeleteButtonTextSize: 3
+    property int templateDeleteButtonRightPadding: 2
+
+    // ===================== TEXT INPUT ALIGNMENT SETTINGS =====================
+    // Відступи тексту всередині search/name полів.
+    // textInputPaddingX більше -> текст і курсор правіше
+    // textInputPaddingY більше -> текст і курсор нижче
+    property int textInputPaddingX: 2
+    property int textInputPaddingY: 0
+    property int textInputPlaceholderOffsetY: 0
+
+    // ===================== SAVE TEMPLATE PANEL SETTINGS =====================
+    // Меню збереження шаблона.
+    // Логіка:
+    // 1) вибираєш іконку предмета;
+    // 2) name автоматично ставиться з category, але можна змінити;
+    // 3) Save записує targetValue + finalMoves у templates.json.
+    property bool saveTemplatePanelVisible: false
+    property var availableTemplateItems: []
+    property var saveSelectedItem: null
+    property string saveItemSearchText: ""
+    property string saveTemplateName: ""
+    property string saveTemplateMessage: ""
+
+    property int savePanelX: 4
+    property int savePanelY: 20
+    property int savePanelWidth: 168
+    property int savePanelHeight: 98
+
+    property int savePanelTitleX: 4
+    property int savePanelTitleY: 3
+
+    property int saveNameX: 4
+    property int saveNameY: 14
+    property int saveNameWidth: 95
+    property int saveNameHeight: 9
+
+    property int saveItemSearchX: 4
+    property int saveItemSearchY: 26
+    property int saveItemSearchWidth: 118
+    property int saveItemSearchHeight: 9
+
+    property int savePreviewX: 128
+    property int savePreviewY: 14
+    property int savePreviewSize: 18
+
+    property int saveItemListX: 4
+    property int saveItemListY: 38
+    property int saveItemListWidth: 160
+    property int saveItemListHeight: 43
+    property int saveItemRowHeight: 12
+    property int saveItemIconSize: 9
+
+    property int saveButtonX: 135
+    property int saveButtonY: 85
+    property int saveButtonWidth: 28
+    property int saveButtonHeight: 9
 
     // ===================== MODE BUTTON SETTINGS =====================
     // Кнопка перемикання режимів.
@@ -382,6 +516,303 @@ Window {
         }
 
         return ""
+    }
+
+    function loadTemplateList() {
+        if (typeof templateBridge === "undefined"
+                || typeof templateBridge.loadTemplates !== "function") {
+            console.log("TemplateBridge is not connected")
+            templateList = []
+            return
+        }
+
+        templateList = templateBridge.loadTemplates()
+        console.log("Templates loaded:", templateList.length)
+    }
+
+    function loadAvailableTemplateItems() {
+        if (typeof templateBridge === "undefined"
+                || typeof templateBridge.loadAvailableItems !== "function") {
+            console.log("TemplateBridge.loadAvailableItems is not connected")
+            availableTemplateItems = []
+            return
+        }
+
+        availableTemplateItems = templateBridge.loadAvailableItems()
+        console.log("Available template items:", availableTemplateItems.length)
+    }
+
+    function toggleTemplatePanel() {
+        sequenceDropdownVisible = false
+        openedFinalSlot = -1
+        saveTemplatePanelVisible = false
+
+        templatePanelVisible = !templatePanelVisible
+
+        if (templatePanelVisible) {
+            loadTemplateList()
+        }
+    }
+
+    function normalizeText(value) {
+        if (value === undefined || value === null) {
+            return ""
+        }
+
+        return String(value).toLowerCase()
+    }
+
+    function templateMatchesSearch(templateData) {
+        var query = normalizeText(templateSearchText).trim()
+
+        if (query.length === 0) {
+            return true
+        }
+
+        var text = normalizeText(templateData.name)
+                 + " " + normalizeText(templateData.material)
+                 + " " + normalizeText(templateData.category)
+                 + " " + normalizeText(templateData.id)
+
+        return text.indexOf(query) !== -1
+    }
+
+    function displayMaterialName(material) {
+        if (material === undefined || material === null) {
+            return ""
+        }
+
+        return String(material).replace(/_/g, " ")
+    }
+
+    function templateItemMatchesSearch(itemData) {
+        var query = normalizeText(saveItemSearchText).trim()
+
+        if (query.length === 0) {
+            return true
+        }
+
+        var text = normalizeText(itemData.name)
+                 + " " + normalizeText(itemData.material)
+                 + " " + normalizeText(itemData.category)
+                 + " " + normalizeText(itemData.id)
+
+        return text.indexOf(query) !== -1
+    }
+
+    function selectSaveItem(itemData) {
+        if (itemData === undefined || itemData === null) {
+            return
+        }
+
+        saveSelectedItem = itemData
+        saveTemplateName = itemData.name
+        saveTemplateMessage = displayMaterialName(itemData.material)
+
+        console.log("Save item selected:", itemData.id)
+    }
+
+    function findAvailableItemById(id) {
+        if (id === undefined || id === null || id === "") {
+            return null
+        }
+
+        for (var i = 0; i < availableTemplateItems.length; i++) {
+            if (availableTemplateItems[i].id === id) {
+                return availableTemplateItems[i]
+            }
+        }
+
+        return null
+    }
+
+    function openSaveTemplatePanel() {
+        sequenceDropdownVisible = false
+        openedFinalSlot = -1
+        templatePanelVisible = false
+
+        loadAvailableTemplateItems()
+
+        saveTemplatePanelVisible = true
+        saveTemplateMessage = "target " + targetValue + " | moves " + getCleanFinalMoves().join(", ")
+
+        var currentItem = findAvailableItemById(selectedTemplateId)
+
+        if (currentItem !== null) {
+            saveSelectedItem = currentItem
+            saveTemplateName = selectedTemplateName !== "" ? selectedTemplateName : currentItem.name
+        } else {
+            saveSelectedItem = null
+            saveTemplateName = ""
+        }
+    }
+
+    function closeSaveTemplatePanel() {
+        saveTemplatePanelVisible = false
+    }
+
+    function saveCurrentTemplate() {
+        var moves = getCleanFinalMoves()
+
+        if (moves.length < 1 || moves.length > 3) {
+            saveTemplateMessage = "Choose 1-3 final moves"
+            console.log("Save template error:", saveTemplateMessage)
+            return
+        }
+
+        if (saveSelectedItem === null
+                || saveSelectedItem === undefined
+                || saveSelectedItem.icon === undefined) {
+            saveTemplateMessage = "Choose item icon"
+            console.log("Save template error:", saveTemplateMessage)
+            return
+        }
+
+        var name = String(saveTemplateName).trim()
+
+        if (name.length === 0) {
+            name = saveSelectedItem.name
+        }
+
+        if (typeof templateBridge === "undefined"
+                || typeof templateBridge.saveTemplate !== "function") {
+            saveTemplateMessage = "TemplateBridge is not connected"
+            console.log("Save template error:", saveTemplateMessage)
+            return
+        }
+
+        var result = templateBridge.saveTemplate(
+            saveSelectedItem.id,
+            name,
+            saveSelectedItem.material,
+            saveSelectedItem.category,
+            saveSelectedItem.icon,
+            targetValue,
+            moves
+        )
+
+        saveTemplateMessage = result.message
+
+        if (result.ok) {
+            selectedTemplateIcon = saveSelectedItem.icon
+            selectedTemplateName = name
+            selectedTemplateMaterial = saveSelectedItem.material
+            selectedTemplateId = saveSelectedItem.id
+
+            loadTemplateList()
+            saveTemplatePanelVisible = false
+            templatePanelVisible = true
+        }
+
+        console.log("Save template:", result.ok, result.message)
+    }
+
+    function setFinalMovesFromTemplate(moves) {
+        var result = [null, null, null]
+
+        if (moves === undefined || moves === null) {
+            finalMoves = result
+            return
+        }
+
+        var clean = []
+
+        for (var i = 0; i < moves.length && clean.length < 3; i++) {
+            if (moves[i] !== null && moves[i] !== undefined) {
+                clean.push(Number(moves[i]))
+            }
+        }
+
+        // Вирівнюємо вправо:
+        // [x]       -> [null, null, x]
+        // [x, y]    -> [null, x, y]
+        // [x, y, z] -> [x, y, z]
+        var offset = 3 - clean.length
+
+        for (var j = 0; j < clean.length; j++) {
+            result[offset + j] = clean[j]
+        }
+
+        finalMoves = result
+    }
+
+    function applyTemplate(templateData) {
+        if (templateData === undefined || templateData === null) {
+            return
+        }
+
+        // Кожний вибір шаблона починається як новий розрахунок.
+        // Тому зелений marker завжди повертається на 0.
+        startValue = 0
+
+        // Стара ручна історія більше не має впливати на новий шаблон.
+        pressedMoves = []
+
+        // Після вибору шаблона переходимо в CALC mode.
+        // У CALC mode зелений marker можна вручну перетягнути на потрібний старт.
+        manualMode = false
+
+        targetValue = Number(templateData.target)
+        setFinalMovesFromTemplate(templateData.finalMoves)
+
+        selectedTemplateIcon = templateData.icon
+        selectedTemplateName = templateData.name
+        selectedTemplateMaterial = templateData.material
+        selectedTemplateId = templateData.id
+
+        templatePanelVisible = false
+        saveTemplatePanelVisible = false
+        sequenceDropdownVisible = false
+        openedFinalSlot = -1
+
+        console.log("Template applied:", templateData.id, "target:", templateData.target, "final:", templateData.finalMoves)
+    }
+
+    function clearSelectedTemplate() {
+        selectedTemplateIcon = ""
+        selectedTemplateName = ""
+        selectedTemplateMaterial = ""
+        selectedTemplateId = ""
+
+        // Забираємо тільки вибраний шаблон і фінальні ходи.
+        // targetValue/startValue не чіпаємо, щоб не ламати поточну позицію шкали.
+        finalMoves = [null, null, null]
+
+        templatePanelVisible = false
+        saveTemplatePanelVisible = false
+        sequenceDropdownVisible = false
+        openedFinalSlot = -1
+
+        console.log("Selected template cleared")
+    }
+
+    function deleteTemplate(templateData) {
+        if (templateData === undefined || templateData === null || templateData.id === undefined) {
+            return
+        }
+
+        if (typeof templateBridge === "undefined"
+                || typeof templateBridge.deleteTemplate !== "function") {
+            console.log("TemplateBridge deleteTemplate is not connected")
+            return
+        }
+
+        var templateId = String(templateData.id)
+        var ok = templateBridge.deleteTemplate(templateId)
+
+        console.log("Template deleted:", templateId, ok)
+
+        if (!ok) {
+            return
+        }
+
+        if (selectedTemplateId === templateId) {
+            clearSelectedTemplate()
+        }
+
+        loadTemplateList()
+        templatePanelVisible = true
+        saveTemplatePanelVisible = false
     }
 
     function setFinalMove(slotIndex, moveValue) {
@@ -1235,8 +1666,10 @@ Window {
         width: root.planButtonSize * root.pixelScale
         height: root.planButtonSize * root.pixelScale
 
+        // Базова кнопка шаблонів. Її НЕ замінюємо вибраним предметом.
+        // Це завжди стандартна рамка/кнопка plan_icon.png.
         Image {
-            id: planIcon
+            id: planIconBase
 
             anchors.centerIn: parent
 
@@ -1246,21 +1679,24 @@ Window {
             source: "assets/ui/plan_icon.png"
             smooth: false
             fillMode: Image.PreserveAspectFit
+        }
 
-            scale: planMouseArea.pressed ? 0.96 : planMouseArea.containsMouse ? 1.035 : 1.0
-            opacity: planMouseArea.containsMouse ? 1.0 : 0.96
+        // Іконка вибраного шаблона кладеться ПОВЕРХ базової кнопки.
+        // Якщо шаблон не вибраний — цей Image невидимий.
+        Image {
+            id: selectedTemplateIconOverlay
 
-            Behavior on scale {
-                NumberAnimation {
-                    duration: 55
-                }
-            }
+            anchors.centerIn: parent
+            anchors.horizontalCenterOffset: root.selectedTemplateIconOffsetX * root.pixelScale
+            anchors.verticalCenterOffset: root.selectedTemplateIconOffsetY * root.pixelScale
 
-            Behavior on opacity {
-                NumberAnimation {
-                    duration: 55
-                }
-            }
+            width: root.selectedTemplateIconSize * root.pixelScale
+            height: root.selectedTemplateIconSize * root.pixelScale
+
+            visible: root.selectedTemplateIcon !== ""
+            source: root.selectedTemplateIcon
+            smooth: false
+            fillMode: Image.PreserveAspectFit
         }
 
         MouseArea {
@@ -1269,11 +1705,710 @@ Window {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-            onClicked: {
-                root.sequenceDropdownVisible = false
-                root.openedFinalSlot = -1
-                console.log("Plan/template button clicked")
+            onClicked: function(mouse) {
+                if (mouse.button === Qt.RightButton) {
+                    root.clearSelectedTemplate()
+                    return
+                }
+
+                root.toggleTemplatePanel()
+            }
+        }
+    }
+
+    // ===================== TEMPLATE PANEL =====================
+    // Відкривається лівою planButton.
+    //
+    // Поки це тільки завантаження шаблона:
+    // клік по рядку -> targetValue + finalMoves з templates.json.
+    //
+    // Пошук фільтрує по:
+    // name, material, category, id.
+
+    Item {
+        id: templatePanel
+
+        visible: root.templatePanelVisible
+
+        x: root.templatePanelX * root.pixelScale
+        y: root.templatePanelY * root.pixelScale
+
+        width: root.templatePanelWidth * root.pixelScale
+        height: root.templatePanelHeight * root.pixelScale
+
+        z: 320
+
+        Rectangle {
+            anchors.fill: parent
+
+            color: "#1f1f1f"
+            opacity: 0.96
+
+            border.color: "#d08a2a"
+            border.width: 1
+        }
+
+        TextInput {
+            id: templateSearchInput
+
+            x: root.templateSearchX * root.pixelScale
+            y: root.templateSearchY * root.pixelScale
+
+            width: root.templateSearchWidth * root.pixelScale
+            height: root.templateSearchHeight * root.pixelScale
+
+            text: root.templateSearchText
+            color: "white"
+            selectionColor: "#d08a2a"
+            selectedTextColor: "black"
+
+            font.pixelSize: root.templateTextSize * root.pixelScale
+            verticalAlignment: TextInput.AlignVCenter
+            leftPadding: root.textInputPaddingX * root.pixelScale
+            rightPadding: root.textInputPaddingX * root.pixelScale
+            topPadding: root.textInputPaddingY * root.pixelScale
+
+            clip: true
+
+            onTextChanged: {
+                root.templateSearchText = text
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                z: -1
+
+                color: "#2a2a2a"
+                border.color: templateSearchInput.activeFocus ? "#d08a2a" : "#606060"
+                border.width: 1
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: root.textInputPlaceholderOffsetY * root.pixelScale
+                x: root.textInputPaddingX * root.pixelScale
+
+                visible: templateSearchInput.text.length === 0
+
+                text: "search..."
+                color: "#9a9a9a"
+                font.pixelSize: root.templateTextSize * root.pixelScale
+            }
+        }
+
+        Rectangle {
+            id: templatePanelSaveButton
+
+            x: root.templateSaveButtonX * root.pixelScale
+            y: root.templateSaveButtonY * root.pixelScale
+
+            width: root.templateSaveButtonWidth * root.pixelScale
+            height: root.templateSaveButtonHeight * root.pixelScale
+
+            color: templatePanelSaveMouseArea.containsMouse ? "#3b3427" : "#2a2a2a"
+            border.color: templatePanelSaveMouseArea.containsMouse ? "#d08a2a" : "#606060"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+
+                text: "SAVE"
+                color: "white"
+                font.pixelSize: root.templateSaveButtonTextSize * root.pixelScale
+                font.bold: true
+
+                style: Text.Outline
+                styleColor: "black"
+            }
+
+            MouseArea {
+                id: templatePanelSaveMouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    root.openSaveTemplatePanel()
+                }
+            }
+        }
+
+        Rectangle {
+            id: templatePanelCloseButton
+
+            x: parent.width - root.templateCloseButtonRightMargin * root.pixelScale
+            y: root.templateCloseButtonY * root.pixelScale
+
+            width: root.templateCloseButtonWidth * root.pixelScale
+            height: root.templateCloseButtonHeight * root.pixelScale
+
+            color: templatePanelCloseMouseArea.containsMouse ? "#4a1f1f" : "transparent"
+            border.color: templatePanelCloseMouseArea.containsMouse ? "#d08a2a" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+
+                text: "x"
+                color: "white"
+                font.pixelSize: root.templateCloseButtonTextSize * root.pixelScale
+            }
+
+            MouseArea {
+                id: templatePanelCloseMouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    root.templatePanelVisible = false
+                }
+            }
+        }
+
+        Text {
+            x: root.templateListX * root.pixelScale
+            y: root.templateListY * root.pixelScale
+
+            visible: root.templateList.length === 0
+
+            text: "No templates"
+            color: "#cfcfcf"
+
+            font.pixelSize: root.templateTextSize * root.pixelScale
+
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        Flickable {
+            id: templateListFlickable
+
+            x: root.templateListX * root.pixelScale
+            y: root.templateListY * root.pixelScale
+
+            width: root.templateListWidth * root.pixelScale
+            height: root.templateListHeight * root.pixelScale
+
+            clip: true
+
+            contentWidth: width
+            contentHeight: templateListColumn.implicitHeight
+
+            Column {
+                id: templateListColumn
+
+                width: templateListFlickable.width
+                spacing: 1 * root.pixelScale
+
+                Repeater {
+                    model: root.templateList
+
+                    Item {
+                        id: templateRow
+
+                        visible: root.templateMatchesSearch(modelData)
+
+                        width: templateListColumn.width
+                        height: root.templateRowHeight * root.pixelScale
+
+                        Rectangle {
+                            anchors.fill: parent
+
+                            color: templateRowMouseArea.containsMouse ? "#3b3427" : "transparent"
+                            border.color: templateRowMouseArea.containsMouse ? "#d08a2a" : "transparent"
+                            border.width: 1
+                        }
+
+                        Image {
+                            id: templateIcon
+
+                            x: 2 * root.pixelScale
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            width: root.templateIconSize * root.pixelScale
+                            height: root.templateIconSize * root.pixelScale
+
+                            source: modelData.icon
+                            smooth: false
+                            fillMode: Image.PreserveAspectFit
+                        }
+
+                        Text {
+                            x: 15 * root.pixelScale
+                            y: 1 * root.pixelScale
+
+                            width: parent.width
+                                   - 18 * root.pixelScale
+                                   - (root.templateDeleteButtonWidth + root.templateDeleteButtonRightPadding + 2) * root.pixelScale
+
+                            text: modelData.name
+                            color: "white"
+
+                            font.pixelSize: root.templateTextSize * root.pixelScale
+                            elide: Text.ElideRight
+
+                            style: Text.Outline
+                            styleColor: "black"
+                        }
+
+                        Text {
+                            x: 15 * root.pixelScale
+                            y: 7 * root.pixelScale
+
+                            width: parent.width
+                                   - 18 * root.pixelScale
+                                   - (root.templateDeleteButtonWidth + root.templateDeleteButtonRightPadding + 2) * root.pixelScale
+
+                            text: root.displayMaterialName(modelData.material)
+                                  + " | target " + modelData.target
+                            color: "#c8c8c8"
+
+                            font.pixelSize: root.templateSmallTextSize * root.pixelScale
+                            elide: Text.ElideRight
+
+                            style: Text.Outline
+                            styleColor: "black"
+                        }
+
+                        MouseArea {
+                            id: templateRowMouseArea
+
+                            x: 0
+                            y: 0
+                            width: parent.width
+                                   - (root.templateDeleteButtonWidth + root.templateDeleteButtonRightPadding + 1) * root.pixelScale
+                            height: parent.height
+
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                root.applyTemplate(modelData)
+                            }
+                        }
+
+                        Rectangle {
+                            id: templateDeleteButton
+
+                            x: parent.width
+                               - (root.templateDeleteButtonWidth + root.templateDeleteButtonRightPadding) * root.pixelScale
+                            y: (parent.height - root.templateDeleteButtonHeight * root.pixelScale) / 2
+
+                            width: root.templateDeleteButtonWidth * root.pixelScale
+                            height: root.templateDeleteButtonHeight * root.pixelScale
+
+                            color: templateDeleteMouseArea.containsMouse ? "#4a1f1f" : "#2a2a2a"
+                            border.color: templateDeleteMouseArea.containsMouse ? "#d08a2a" : "#606060"
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+
+                                text: "DEL"
+                                color: "#ffb0b0"
+                                font.pixelSize: root.templateDeleteButtonTextSize * root.pixelScale
+                                font.bold: true
+
+                                style: Text.Outline
+                                styleColor: "black"
+                            }
+
+                            MouseArea {
+                                id: templateDeleteMouseArea
+
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+
+                                onClicked: {
+                                    root.deleteTemplate(modelData)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ===================== SAVE TEMPLATE PANEL =====================
+    // Окрема панель збереження шаблона.
+    // Зберігає: selected item icon + name + targetValue + finalMoves.
+
+    Item {
+        id: saveTemplatePanel
+
+        visible: root.saveTemplatePanelVisible
+
+        x: root.savePanelX * root.pixelScale
+        y: root.savePanelY * root.pixelScale
+
+        width: root.savePanelWidth * root.pixelScale
+        height: root.savePanelHeight * root.pixelScale
+
+        z: 340
+
+        Rectangle {
+            anchors.fill: parent
+
+            color: "#1f1f1f"
+            opacity: 0.97
+
+            border.color: "#d08a2a"
+            border.width: 1
+        }
+
+        Text {
+            x: root.savePanelTitleX * root.pixelScale
+            y: root.savePanelTitleY * root.pixelScale
+
+            text: "SAVE TEMPLATE"
+            color: "white"
+            font.pixelSize: root.templateTextSize * root.pixelScale
+            font.bold: true
+
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        Rectangle {
+            id: savePanelCloseButton
+
+            x: parent.width - 10 * root.pixelScale
+            y: 3 * root.pixelScale
+
+            width: 7 * root.pixelScale
+            height: 7 * root.pixelScale
+
+            color: savePanelCloseMouseArea.containsMouse ? "#4a1f1f" : "transparent"
+            border.color: savePanelCloseMouseArea.containsMouse ? "#d08a2a" : "transparent"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+
+                text: "x"
+                color: "white"
+                font.pixelSize: 4 * root.pixelScale
+            }
+
+            MouseArea {
+                id: savePanelCloseMouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    root.closeSaveTemplatePanel()
+                }
+            }
+        }
+
+        TextInput {
+            id: saveNameInput
+
+            x: root.saveNameX * root.pixelScale
+            y: root.saveNameY * root.pixelScale
+
+            width: root.saveNameWidth * root.pixelScale
+            height: root.saveNameHeight * root.pixelScale
+
+            text: root.saveTemplateName
+            color: "white"
+            selectionColor: "#d08a2a"
+            selectedTextColor: "black"
+
+            font.pixelSize: root.templateTextSize * root.pixelScale
+            verticalAlignment: TextInput.AlignVCenter
+            leftPadding: root.textInputPaddingX * root.pixelScale
+            rightPadding: root.textInputPaddingX * root.pixelScale
+            topPadding: root.textInputPaddingY * root.pixelScale
+
+            clip: true
+
+            onTextChanged: {
+                root.saveTemplateName = text
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                z: -1
+
+                color: "#2a2a2a"
+                border.color: saveNameInput.activeFocus ? "#d08a2a" : "#606060"
+                border.width: 1
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: root.textInputPlaceholderOffsetY * root.pixelScale
+                x: root.textInputPaddingX * root.pixelScale
+
+                visible: saveNameInput.text.length === 0
+
+                text: "template name..."
+                color: "#9a9a9a"
+                font.pixelSize: root.templateTextSize * root.pixelScale
+            }
+        }
+
+        Item {
+            id: savePreview
+
+            x: root.savePreviewX * root.pixelScale
+            y: root.savePreviewY * root.pixelScale
+
+            width: root.savePreviewSize * root.pixelScale
+            height: root.savePreviewSize * root.pixelScale
+
+            Rectangle {
+                anchors.fill: parent
+                color: "#2a2a2a"
+                border.color: "#606060"
+                border.width: 1
+            }
+
+            Image {
+                anchors.centerIn: parent
+
+                width: (root.savePreviewSize - 3) * root.pixelScale
+                height: (root.savePreviewSize - 3) * root.pixelScale
+
+                visible: root.saveSelectedItem !== null && root.saveSelectedItem.icon !== undefined
+                source: visible ? root.saveSelectedItem.icon : ""
+                smooth: false
+                fillMode: Image.PreserveAspectFit
+            }
+        }
+
+        TextInput {
+            id: saveItemSearchInput
+
+            x: root.saveItemSearchX * root.pixelScale
+            y: root.saveItemSearchY * root.pixelScale
+
+            width: root.saveItemSearchWidth * root.pixelScale
+            height: root.saveItemSearchHeight * root.pixelScale
+
+            text: root.saveItemSearchText
+            color: "white"
+            selectionColor: "#d08a2a"
+            selectedTextColor: "black"
+
+            font.pixelSize: root.templateTextSize * root.pixelScale
+            verticalAlignment: TextInput.AlignVCenter
+            leftPadding: root.textInputPaddingX * root.pixelScale
+            rightPadding: root.textInputPaddingX * root.pixelScale
+            topPadding: root.textInputPaddingY * root.pixelScale
+
+            clip: true
+
+            onTextChanged: {
+                root.saveItemSearchText = text
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                z: -1
+
+                color: "#2a2a2a"
+                border.color: saveItemSearchInput.activeFocus ? "#d08a2a" : "#606060"
+                border.width: 1
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.verticalCenterOffset: root.textInputPlaceholderOffsetY * root.pixelScale
+                x: root.textInputPaddingX * root.pixelScale
+
+                visible: saveItemSearchInput.text.length === 0
+
+                text: "item search..."
+                color: "#9a9a9a"
+                font.pixelSize: root.templateTextSize * root.pixelScale
+            }
+        }
+
+        Text {
+            x: root.saveItemListX * root.pixelScale
+            y: root.saveItemListY * root.pixelScale
+
+            visible: root.availableTemplateItems.length === 0
+
+            text: "No item icons"
+            color: "#cfcfcf"
+            font.pixelSize: root.templateTextSize * root.pixelScale
+
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        Flickable {
+            id: saveItemListFlickable
+
+            x: root.saveItemListX * root.pixelScale
+            y: root.saveItemListY * root.pixelScale
+
+            width: root.saveItemListWidth * root.pixelScale
+            height: root.saveItemListHeight * root.pixelScale
+
+            clip: true
+
+            contentWidth: width
+            contentHeight: saveItemListColumn.implicitHeight
+
+            Column {
+                id: saveItemListColumn
+
+                width: saveItemListFlickable.width
+                spacing: 1 * root.pixelScale
+
+                Repeater {
+                    model: root.availableTemplateItems
+
+                    Item {
+                        id: saveItemRow
+
+                        property bool matchedSearch: root.templateItemMatchesSearch(modelData)
+                        property bool selected: root.saveSelectedItem !== null
+                                                && root.saveSelectedItem.id === modelData.id
+
+                        visible: matchedSearch
+
+                        width: saveItemListColumn.width
+                        height: matchedSearch ? root.saveItemRowHeight * root.pixelScale : 0
+
+                        Rectangle {
+                            anchors.fill: parent
+
+                            color: saveItemRow.selected ? "#354326"
+                                   : saveItemRowMouseArea.containsMouse ? "#3b3427"
+                                   : "transparent"
+
+                            border.color: saveItemRow.selected ? "#71c45a"
+                                          : saveItemRowMouseArea.containsMouse ? "#d08a2a"
+                                          : "transparent"
+                            border.width: saveItemRow.selected || saveItemRowMouseArea.containsMouse ? 1 : 0
+                        }
+
+                        Image {
+                            x: 2 * root.pixelScale
+                            anchors.verticalCenter: parent.verticalCenter
+
+                            width: root.saveItemIconSize * root.pixelScale
+                            height: root.saveItemIconSize * root.pixelScale
+
+                            source: modelData.icon
+                            smooth: false
+                            fillMode: Image.PreserveAspectFit
+                        }
+
+                        Text {
+                            x: 14 * root.pixelScale
+                            y: 1 * root.pixelScale
+
+                            width: parent.width - 16 * root.pixelScale
+
+                            text: modelData.name
+                            color: "white"
+
+                            font.pixelSize: root.templateTextSize * root.pixelScale
+                            elide: Text.ElideRight
+
+                            style: Text.Outline
+                            styleColor: "black"
+                        }
+
+                        Text {
+                            x: 14 * root.pixelScale
+                            y: 7 * root.pixelScale
+
+                            width: parent.width - 16 * root.pixelScale
+
+                            text: root.displayMaterialName(modelData.material)
+                                  + " | " + modelData.category
+                            color: "#c8c8c8"
+
+                            font.pixelSize: root.templateSmallTextSize * root.pixelScale
+                            elide: Text.ElideRight
+
+                            style: Text.Outline
+                            styleColor: "black"
+                        }
+
+                        MouseArea {
+                            id: saveItemRowMouseArea
+
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+
+                            onClicked: {
+                                root.selectSaveItem(modelData)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Text {
+            x: 4 * root.pixelScale
+            y: root.saveButtonY * root.pixelScale
+
+            width: 126 * root.pixelScale
+            height: root.saveButtonHeight * root.pixelScale
+
+            text: root.saveTemplateMessage
+            color: "#cfcfcf"
+            font.pixelSize: root.templateSmallTextSize * root.pixelScale
+            elide: Text.ElideRight
+
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        Rectangle {
+            id: saveTemplateButton
+
+            x: root.saveButtonX * root.pixelScale
+            y: root.saveButtonY * root.pixelScale
+
+            width: root.saveButtonWidth * root.pixelScale
+            height: root.saveButtonHeight * root.pixelScale
+
+            color: saveTemplateMouseArea.containsMouse ? "#3b3427" : "#2a2a2a"
+            border.color: saveTemplateMouseArea.containsMouse ? "#d08a2a" : "#606060"
+            border.width: 1
+
+            Text {
+                anchors.centerIn: parent
+
+                text: "SAVE"
+                color: "white"
+                font.pixelSize: root.templateSaveButtonTextSize * root.pixelScale
+                font.bold: true
+
+                style: Text.Outline
+                styleColor: "black"
+            }
+
+            MouseArea {
+                id: saveTemplateMouseArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    root.saveCurrentTemplate()
+                }
             }
         }
     }
