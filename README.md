@@ -46,22 +46,17 @@ Do **not** run the program directly from inside the ZIP archive. Extract the who
 
 ## Windows SmartScreen warning
 
-This build is currently unsigned.
+The current Windows build is unsigned.
 
-Windows SmartScreen may show a warning such as:
+Windows SmartScreen may show an "Unknown publisher" warning because the executable does not have a paid code-signing certificate yet.
 
-```text
-Windows protected your PC
-Unknown publisher
-```
+Recommended safety checks:
+- download only from the official GitHub Releases page;
+- extract the full ZIP archive before running;
+- inspect the source code if needed;
+- do not run copies downloaded from third-party mirrors.
 
-If you downloaded the program from the official GitHub release and trust the file, click:
-
-```text
-More info → Run anyway
-```
-
-This warning appears because the executable does not have a paid code-signing certificate.
+If you trust the official release, you can choose "More info → Run anyway".
 
 ## Screenshots
 
@@ -225,11 +220,13 @@ It is intended for learning, planning, and practicing TerraFirmaCraft-style anvi
 
 ## Notes on TerraFirmaCraft assets
 
-This project may include item or icon assets derived from or based on TerraFirmaCraft resources.
+Some item/icon assets are derived from or based on TerraFirmaCraft resources.
 
-TerraFirmaCraft is developed by its respective authors. This project is not affiliated with, endorsed by, or maintained by the TerraFirmaCraft team.
+TerraFirmaCraft is developed by its respective authors.
+This project is not affiliated with, endorsed by, or maintained by the TerraFirmaCraft team.
 
 Third-party assets remain under their original licenses and ownership.
+See `ATTRIBUTION.md` for details.
 
 ## License
 
