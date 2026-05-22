@@ -10,6 +10,8 @@ find_package(Qt6 REQUIRED COMPONENTS Quick Core)
 
 qt_standard_project_setup()
 
+set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/app_icon.rc")
+
 qt_add_executable(appASCEND_GUI
     main.cpp
 
@@ -24,6 +26,8 @@ qt_add_executable(appASCEND_GUI
     core/solver.cpp
     core/util.h
     core/util.cpp
+
+    ${APP_ICON_RESOURCE_WINDOWS}
 )
 
 qt_add_qml_module(appASCEND_GUI
@@ -50,6 +54,8 @@ qt_add_qml_module(appASCEND_GUI
         assets/ui/final_slots/final_slot_left.png
         assets/ui/final_slots/final_slot_middle.png
         assets/ui/final_slots/final_slot_right.png
+
+        assets/ui/app_icon.ico
 )
 
 target_link_libraries(appASCEND_GUI

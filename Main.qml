@@ -65,6 +65,102 @@ Window {
     property int sequenceCellSize: 13
     property int sequenceCellSpacing: 2
 
+    // ===================== MODE BUTTON SETTINGS =====================
+    // Кнопка перемикання режимів.
+    //
+    // manualMode = false -> CALC mode:
+    //     move-кнопки НЕ рухають зелений marker;
+    //     права кнопка рахує sequence через solver.
+    //
+    // manualMode = true -> MANUAL mode:
+    //     move-кнопки рухають зелений marker;
+    //     нижній ряд показує останні 3 натиснуті ходи;
+    //     якщо останні ходи збігаються з finalMoves — нижній ряд світиться зеленим.
+    property bool manualMode: false
+
+    // Кнопка стоїть у верхньому лівому куті.
+    //
+    // modeButtonX більше -> правіше
+    // modeButtonX менше  -> лівіше
+    // modeButtonY більше -> нижче
+    // modeButtonY менше  -> вище
+    //
+    // modeButtonSize     -> розмір кнопки
+    // modeButtonIconSize -> розмір картинки всередині
+    // modeButtonTextSize -> розмір напису CALC / MAN
+    //
+    // ЛКМ -> перемкнути CALC / MAN
+    // ПКМ -> reset manual state
+    property int modeButtonX: 5
+    property int modeButtonY: 5
+    property int modeButtonSize: 18
+    property int modeButtonIconSize: 18
+    property int modeButtonTextSize: 4
+
+    // Поки використовуємо ту саму порожню іконку, що й для plan/sequence.
+    // Якщо потім зробиш окрему PNG — просто заміниш цей шлях.
+    property string modeButtonIcon: "assets/ui/plan_icon.png"
+
+    // Зміщення напису всередині кнопки.
+    //
+    // modeButtonTextOffsetX більше -> текст правіше
+    // modeButtonTextOffsetX менше  -> текст лівіше
+    // modeButtonTextOffsetY більше -> текст нижче
+    // modeButtonTextOffsetY менше  -> текст вище
+    property int modeButtonTextOffsetX: 0
+    property int modeButtonTextOffsetY: 0
+
+    // ===================== MANUAL INPUT HISTORY SETTINGS =====================
+    // Нижній ряд під final slots.
+    // Він показує останні 3 ходи, які ти натиснув у MANUAL mode.
+    //
+    // manualSlot1X / manualSlot1Y -> лівий нижній слот
+    // manualSlot2X / manualSlot2Y -> середній нижній слот
+    // manualSlot3X / manualSlot3Y -> правий нижній слот
+    //
+    // X більше -> правіше
+    // X менше  -> лівіше
+    // Y більше -> нижче
+    // Y менше  -> вище
+    property int manualSlot1X: 60
+    property int manualSlot1Y: 29
+
+    property int manualSlot2X: 79
+    property int manualSlot2Y: 29
+
+    property int manualSlot3X: 98
+    property int manualSlot3Y: 29
+
+    // Розмір нижніх history-комірок.
+    // Якщо іконки не вміщаються — крути manualSlotWidth / manualSlotHeight.
+    property int manualSlotWidth: 17
+    property int manualSlotHeight: 17
+
+    // Окрема зелена підсвітка під нижніми слотами.
+    // ВАЖЛИВО: це не рухає самі іконки, тільки зелену рамку/фон.
+    //
+    // manualHighlightOffsetX більше -> підсвітка правіше
+    // manualHighlightOffsetX менше  -> підсвітка лівіше
+    // manualHighlightOffsetY більше -> підсвітка нижче
+    // manualHighlightOffsetY менше  -> підсвітка вище
+    //
+    // manualHighlightWidth / Height -> розмір зеленої підсвітки
+    property int manualHighlightOffsetX: 4
+    property int manualHighlightOffsetY: 2
+    property int manualHighlightWidth: 10
+    property int manualHighlightHeight: 10
+    property real manualHighlightOpacity: 0.22
+
+    // Іконка всередині нижнього slot history.
+    property int manualSlotIconSize: 10
+
+    // Зміщення іконок у нижньому ряду.
+    property int manualSlotIconOffsetX: 0
+    property int manualSlotIconOffsetY: -2
+
+    // Історія натиснутих ходів у ручному режимі.
+    property var pressedMoves: []
+
     // ===================== FINAL MOVE SLOTS POSITION =====================
     // Три верхні рамки фінальних ударів.
     //
@@ -258,6 +354,26 @@ Window {
         console.log("Target:", targetValue)
     }
 
+    function updateStartFromRootX(rootX) {
+        var localX = rootX - scaleStartX * pixelScale
+
+        localX = clamp(
+            localX,
+            0,
+            scaleBarWidth * pixelScale
+        )
+
+        startValue = xToValue(localX)
+
+        // Якщо в CALC mode руками перетягнули старт — історію ручних ходів чистимо,
+        // бо це вже нова стартова точка.
+        if (!manualMode) {
+            pressedMoves = []
+        }
+
+        console.log("Start:", startValue)
+    }
+
     function iconForMove(value) {
         for (var i = 0; i < forgeMoves.length; i++) {
             if (forgeMoves[i].value === value) {
@@ -296,6 +412,125 @@ Window {
         console.log("Final moves:", finalMoves)
     }
 
+
+    function resetManualState() {
+        startValue = 0
+        pressedMoves = []
+        console.log("Manual state reset")
+    }
+
+
+    function setManualMode(value) {
+        if (manualMode === value) {
+            return
+        }
+
+        manualMode = value
+        openedFinalSlot = -1
+        sequenceDropdownVisible = false
+
+        // Коли повертаємось у CALC mode — старт по дефолту знову 0.
+        // Після цього його можна перетягнути зеленим marker-ом вручну.
+        if (!manualMode) {
+            resetManualState()
+        }
+
+        console.log("Mode:", manualMode ? "MANUAL" : "CALC")
+    }
+
+    function addPressedMove(moveValue) {
+        pressedMoves = pressedMoves.concat([moveValue])
+
+        // Щоб масив не ріс безкінечно. Для UI вистачить останніх 30 ходів.
+        if (pressedMoves.length > 30) {
+            pressedMoves = pressedMoves.slice(pressedMoves.length - 30)
+        }
+
+        console.log("Pressed moves:", pressedMoves)
+    }
+
+    function applyManualMove(moveValue) {
+        var nextValue = startValue + moveValue
+
+        startValue = clamp(nextValue, minValue, maxValue)
+        addPressedMove(moveValue)
+
+        sequenceDropdownVisible = false
+        openedFinalSlot = -1
+
+        console.log("Manual move:", moveValue)
+        console.log("Current value:", startValue)
+    }
+
+    function manualSlotX(index) {
+        if (index === 0) {
+            return manualSlot1X
+        }
+
+        if (index === 1) {
+            return manualSlot2X
+        }
+
+        return manualSlot3X
+    }
+
+    function manualSlotY(index) {
+        if (index === 0) {
+            return manualSlot1Y
+        }
+
+        if (index === 1) {
+            return manualSlot2Y
+        }
+
+        return manualSlot3Y
+    }
+
+    function lastPressedMoveForSlot(slotIndex) {
+        var result = [null, null, null]
+        var start = Math.max(pressedMoves.length - 3, 0)
+        var last = pressedMoves.slice(start)
+        var offset = 3 - last.length
+
+        for (var i = 0; i < last.length; i++) {
+            result[offset + i] = last[i]
+        }
+
+        return result[slotIndex]
+    }
+
+    function finalSequenceMatchesInput() {
+        var cleanFinal = getCleanFinalMoves()
+
+        if (cleanFinal.length === 0) {
+            return false
+        }
+
+        if (pressedMoves.length < cleanFinal.length) {
+            return false
+        }
+
+        var last = pressedMoves.slice(pressedMoves.length - cleanFinal.length)
+
+        for (var i = 0; i < cleanFinal.length; i++) {
+            if (last[i] !== cleanFinal[i]) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    function manualSlotIsMatched(slotIndex) {
+        var expectedMove = finalMoves[slotIndex]
+        var actualMove = lastPressedMoveForSlot(slotIndex)
+
+        if (expectedMove === null || actualMove === null) {
+            return false
+        }
+
+        return expectedMove === actualMove
+    }
     function getCleanFinalMoves() {
         var clean = []
 
@@ -443,6 +678,115 @@ Window {
 
         fillMode: Image.Stretch
         smooth: false
+    }
+
+
+    // ===================== MODE BUTTON =====================
+    // Кнопка перемикання CALC / MANUAL.
+    //
+    // ЛКМ -> перемкнути режим.
+    // ПКМ -> reset manual state: зелений marker = 0, історія ходів очищена.
+    //
+    // Що крутити:
+    // modeButtonX / modeButtonY              -> позиція
+    // modeButtonSize                         -> розмір кнопки
+    // modeButtonIconSize                     -> розмір картинки
+    // modeButtonTextSize                     -> розмір напису
+    // modeButtonTextOffsetX / OffsetY        -> зміщення напису
+    //
+    // Напис:
+    // CALC = обчислювальний режим
+    // MAN  = ручний режим
+
+    Item {
+        id: modeButton
+
+        x: root.modeButtonX * root.pixelScale
+        y: root.modeButtonY * root.pixelScale
+
+        width: root.modeButtonSize * root.pixelScale
+        height: root.modeButtonSize * root.pixelScale
+
+        z: 250
+
+        Image {
+            id: modeButtonIconImage
+
+            anchors.centerIn: parent
+
+            width: root.modeButtonIconSize * root.pixelScale
+            height: root.modeButtonIconSize * root.pixelScale
+
+            source: root.modeButtonIcon
+            smooth: false
+            fillMode: Image.PreserveAspectFit
+
+            scale: modeButtonMouseArea.pressed ? 0.96
+                   : modeButtonMouseArea.containsMouse ? 1.035
+                   : 1.0
+
+            opacity: modeButtonMouseArea.containsMouse ? 1.0 : 0.96
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 55
+                }
+            }
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 55
+                }
+            }
+        }
+
+        // Напис режиму поверх іконки.
+        Text {
+            anchors.centerIn: parent
+            anchors.horizontalCenterOffset: root.modeButtonTextOffsetX * root.pixelScale
+            anchors.verticalCenterOffset: root.modeButtonTextOffsetY * root.pixelScale
+
+            text: root.manualMode ? "MAN" : "CALC"
+            color: root.manualMode ? "#8cff8c" : "#ffd36a"
+
+            font.pixelSize: root.modeButtonTextSize * root.pixelScale
+            font.bold: true
+
+            style: Text.Outline
+            styleColor: "black"
+        }
+
+        // Малий індикатор у куті:
+        // жовтий = CALC, зелений = MANUAL.
+        Rectangle {
+            x: parent.width - 4 * root.pixelScale
+            y: parent.height - 4 * root.pixelScale
+
+            width: 3 * root.pixelScale
+            height: 3 * root.pixelScale
+
+            color: root.manualMode ? "#43d15f" : "#d0a64a"
+            border.color: "#111111"
+            border.width: 1
+        }
+
+        MouseArea {
+            id: modeButtonMouseArea
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+            onClicked: function(mouse) {
+                if (mouse.button === Qt.RightButton) {
+                    root.resetManualState()
+                    return
+                }
+
+                root.setManualMode(!root.manualMode)
+            }
+        }
     }
 
     // ===================== FINAL MOVE SLOT 1 =====================
@@ -634,6 +978,64 @@ Window {
         }
     }
 
+
+    // ===================== MANUAL INPUT HISTORY SLOTS =====================
+    // Нижній ряд під final slots.
+    //
+    // Показує останні 3 ходи, які ти натиснув у MANUAL mode.
+    //
+    // Якщо останні 1/2/3 ходи збігаються з вибраними finalMoves,
+    // відповідні праві нижні слоти світяться зеленим.
+
+    Repeater {
+        model: 3
+
+        Item {
+            id: manualHistorySlot
+
+            x: root.manualSlotX(index) * root.pixelScale
+            y: root.manualSlotY(index) * root.pixelScale
+
+            width: root.manualSlotWidth * root.pixelScale
+            height: root.manualSlotHeight * root.pixelScale
+
+            z: 25
+
+            property var moveValue: root.lastPressedMoveForSlot(index)
+            property bool hasMove: moveValue !== null
+            property bool matched: root.manualSlotIsMatched(index)
+
+            Rectangle {
+                x: root.manualHighlightOffsetX * root.pixelScale
+                y: root.manualHighlightOffsetY * root.pixelScale
+
+                width: root.manualHighlightWidth * root.pixelScale
+                height: root.manualHighlightHeight * root.pixelScale
+
+                color: manualHistorySlot.matched ? "#2cff5a" : "transparent"
+                opacity: manualHistorySlot.matched ? root.manualHighlightOpacity : 0.0
+
+                border.color: manualHistorySlot.matched ? "#2cff5a" : "transparent"
+                border.width: manualHistorySlot.matched ? 1 : 0
+            }
+
+            Image {
+                anchors.centerIn: parent
+                anchors.horizontalCenterOffset: root.manualSlotIconOffsetX * root.pixelScale
+                anchors.verticalCenterOffset: root.manualSlotIconOffsetY * root.pixelScale
+
+                width: root.manualSlotIconSize * root.pixelScale
+                height: root.manualSlotIconSize * root.pixelScale
+
+                visible: manualHistorySlot.hasMove
+                source: manualHistorySlot.hasMove ? root.iconForMove(manualHistorySlot.moveValue) : ""
+
+                smooth: false
+                fillMode: Image.PreserveAspectFit
+            }
+        }
+    }
+
     // ===================== FINAL MOVE DROPDOWN =====================
     // Позиція dropdown прив’язана до відкритого слота.
     //
@@ -740,6 +1142,40 @@ Window {
         source: "assets/ui/green_marker.png"
         smooth: false
         fillMode: Image.Stretch
+    }
+
+    // У CALC mode зелений marker можна перетягувати вручну як start position.
+    // У MANUAL mode його рухають тільки move-кнопки.
+    Item {
+        id: greenMarkerHitArea
+
+        x: greenMarker.x - root.markerHitPadding * root.pixelScale
+        y: greenMarker.y - root.markerHitPadding * root.pixelScale
+
+        width: (root.markerSize + root.markerHitPadding * 2) * root.pixelScale
+        height: (root.markerSize + root.markerHitPadding * 2) * root.pixelScale
+
+        z: 30
+
+        MouseArea {
+            id: greenMarkerMouseArea
+
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: root.manualMode ? Qt.ArrowCursor : Qt.PointingHandCursor
+
+            onPressed: function(mouse) {
+                if (!root.manualMode) {
+                    root.updateStartFromRootX(greenMarkerHitArea.x + mouse.x)
+                }
+            }
+
+            onPositionChanged: function(mouse) {
+                if (pressed && !root.manualMode) {
+                    root.updateStartFromRootX(greenMarkerHitArea.x + mouse.x)
+                }
+            }
+        }
     }
 
     // ===================== RED TARGET MARKER =====================
@@ -889,8 +1325,15 @@ Window {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton | Qt.RightButton
 
-            onClicked: {
+            onClicked: function(mouse) {
+                if (mouse.button === Qt.RightButton) {
+                    root.resetManualState()
+                    root.sequenceDropdownVisible = false
+                    return
+                }
+
                 root.solveCurrentSequence()
             }
         }
@@ -1104,7 +1547,11 @@ Window {
                     cursorShape: Qt.PointingHandCursor
 
                     onClicked: {
-                        console.log("Clicked move:", modelData.value)
+                        if (root.manualMode) {
+                            root.applyManualMove(modelData.value)
+                        } else {
+                            console.log("Clicked move:", modelData.value)
+                        }
                     }
                 }
             }
