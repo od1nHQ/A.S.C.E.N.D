@@ -9,8 +9,8 @@
 
 int main(int argc, char *argv[])
 {
-    QCoreApplication::setOrganizationName("Od1nHQ");
-    QCoreApplication::setApplicationName("ASCEND_GUI");
+    QCoreApplication::setOrganizationName("");
+    QCoreApplication::setApplicationName("A.S.C.E.N.D");
 
     QGuiApplication app(argc, argv);
 

@@ -3,13 +3,21 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStandardPaths>
+#include <QProcessEnvironment>
 
 TemplateStorage::TemplateStorage() {
-    QString dataPath = QCoreApplication::applicationDirPath() + "/data";
+    QString roamingPath = QProcessEnvironment::systemEnvironment().value("APPDATA");
+
+    if (roamingPath.isEmpty()) {
+        roamingPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    }
+
+    QString dataPath = QDir(roamingPath).filePath("A.S.C.E.N.D");
 
     QDir dir(dataPath);
 

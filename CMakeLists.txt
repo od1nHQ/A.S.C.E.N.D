@@ -54,6 +54,11 @@ qt_add_executable(appASCEND_GUI
     ${APP_ICON_RESOURCE_WINDOWS}
 )
 
+set_target_properties(appASCEND_GUI PROPERTIES
+    WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME "A.S.C.E.N.D"
+)
+
 qt_add_qml_module(appASCEND_GUI
     URI ASCEND_GUI
     VERSION 1.0
