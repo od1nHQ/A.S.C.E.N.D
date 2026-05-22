@@ -4,6 +4,14 @@
 
 The program helps you work with anvil target positions, required final moves, manual move input, and saved item templates.
 
+## Important note
+
+Ascent is a standalone planner and practice tool.
+
+It does not modify Minecraft, does not automate clicks, does not inject into the game, does not read game memory, and does not interact with servers.
+
+It is intended for learning, planning, and practicing TerraFirmaCraft-style anvil working.
+
 ![Main window](docs/images/main-window.png)
 
 ## Features
@@ -209,14 +217,6 @@ ASCEND_GUI/
 ├── TemplateStorage.cpp
 └── CMakeLists.txt
 ```
-
-## Important note
-
-Ascent is a standalone planner and practice tool.
-
-It does not modify Minecraft, does not inject into the game, does not automate clicks, does not read game memory, and does not interact with servers.
-
-It is intended for learning, planning, and practicing TerraFirmaCraft-style anvil working.
 
 ## Notes on TerraFirmaCraft assets
 
