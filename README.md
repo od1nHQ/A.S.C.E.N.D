@@ -215,6 +215,14 @@ ASCEND_GUI/
 └── CMakeLists.txt
 ```
 
+## Important note
+
+Ascent is a standalone planner and practice tool.
+
+It does not modify Minecraft, does not inject into the game, does not automate clicks, does not read game memory, and does not interact with servers.
+
+It is intended for learning, planning, and practicing TerraFirmaCraft-style anvil working.
+
 ## Notes on TerraFirmaCraft assets
 
 This project may include item or icon assets derived from or based on TerraFirmaCraft resources.
